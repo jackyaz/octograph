@@ -1,8 +1,8 @@
 FROM python:3.7
 
-LABEL maintainer="Stephen Newey <github@s-n.me>"
+LABEL maintainer="Jack Yaz <jackyaz@outlook.com"
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/octograph/app
 
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
