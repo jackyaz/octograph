@@ -76,14 +76,7 @@ def store_series(connection, series, metrics, rate_data):
 
 
 @click.command()
-@click.option(
-    '--config-file',
-    default="/config/octograph.ini",
-    type=click.Path(exists=True, dir_okay=True, readable=True),
-)
-@click.option('--from-date', default='yesterday midnight', type=click.STRING)
-@click.option('--to-date', default='today midnight', type=click.STRING)
-def cmd(config_file, from_date, to_date):
+def cmd(config_file):
 
     config = ConfigParser()
     config.read(config_file)
@@ -118,6 +111,8 @@ def cmd(config_file, from_date, to_date):
             f'{g_mpan}/meters/{g_serial}/consumption/'
 
     timezone = config.get('general', 'timezone', fallback=None)
+    from_date = config.get('general','from-date', fallback='yesterday midnight')
+    to_date = config.get('general','to-date', fallback='today midnight').strip()
 
     rate_data = {
         'electricity': {
@@ -163,4 +158,4 @@ def cmd(config_file, from_date, to_date):
 
 
 if __name__ == '__main__':
-    cmd()
+    cmd('/config/octograph.ini')
