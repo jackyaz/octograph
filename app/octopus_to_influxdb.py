@@ -33,41 +33,11 @@ def retrieve_paginated_data(
 
 def store_series(connection, series, metrics, rate_data):
 
-    agile_data = rate_data.get('agile_unit_rates', [])
-    agile_rates = {
-        point['valid_to']: point['value_inc_vat']
-        for point in agile_data
-    }
-
     def active_rate_field(measurement):
         if series == 'gas':
-            return 'unit_rate'
-        elif not rate_data['unit_rate_low_zone']:  # no low rate
-            return 'unit_rate_high'
-
-        low_start_str = rate_data['unit_rate_low_start']
-        low_end_str = rate_data['unit_rate_low_end']
-        low_zone = rate_data['unit_rate_low_zone']
-
-        measurement_at = maya.parse(measurement['interval_start'])
-
-        low_start = maya.when(
-            measurement_at.datetime(to_timezone=low_zone).strftime(
-                f'%Y-%m-%dT{low_start_str}'
-            ),
-            timezone=low_zone
-        )
-        low_end = maya.when(
-            measurement_at.datetime(to_timezone=low_zone).strftime(
-                f'%Y-%m-%dT{low_end_str}'
-            ),
-            timezone=low_zone
-        )
-        low_period = maya.MayaInterval(low_start, low_end)
-
-        return \
-            'unit_rate_low' if measurement_at in low_period \
-            else 'unit_rate_high'
+            return 'unit_rate_gas'
+        elif series == 'electricity':
+            return 'unit_rate_electricity'
 
     def fields_for_measurement(measurement):
         consumption = measurement['consumption']
@@ -83,18 +53,6 @@ def store_series(connection, series, metrics, rate_data):
             'cost': cost,
             'total_cost': cost + standing_charge,
         }
-        if agile_data:
-            agile_standing_charge = rate_data['agile_standing_charge'] / 48
-            agile_unit_rate = agile_rates.get(
-                maya.parse(measurement['interval_end']).iso8601(),
-                rate_data[rate]  # cludge, use Go rate during DST changeover
-            )
-            agile_cost = agile_unit_rate * consumption
-            fields.update({
-                'agile_rate': agile_unit_rate,
-                'agile_cost': agile_cost,
-                'agile_total_cost': agile_cost + agile_standing_charge,
-            })
         return fields
 
     def tags_for_measurement(measurement):
@@ -148,7 +106,6 @@ def cmd(config_file, from_date, to_date):
         raise click.ClickException('No electricity meter identifiers')
     e_url = 'https://api.octopus.energy/v1/electricity-meter-points/' \
             f'{e_mpan}/meters/{e_serial}/consumption/'
-    agile_url = config.get('electricity', 'agile_rate_url', fallback=None)
 
     g_mpan = config.get('gas', 'mpan', fallback=None)
     g_serial = config.get('gas', 'serial_number', fallback=None)
@@ -160,36 +117,22 @@ def cmd(config_file, from_date, to_date):
     g_url = 'https://api.octopus.energy/v1/gas-meter-points/' \
             f'{g_mpan}/meters/{g_serial}/consumption/'
 
-    timezone = config.get('electricity', 'unit_rate_low_zone', fallback=None)
+    timezone = config.get('general', 'timezone', fallback=None)
 
     rate_data = {
         'electricity': {
             'standing_charge': config.getfloat(
                 'electricity', 'standing_charge', fallback=0.0
             ),
-            'unit_rate_high': config.getfloat(
-                'electricity', 'unit_rate_high', fallback=0.0
-            ),
-            'unit_rate_low': config.getfloat(
-                'electricity', 'unit_rate_low', fallback=0.0
-            ),
-            'unit_rate_low_start': config.get(
-                'electricity', 'unit_rate_low_start', fallback="00:00"
-            ),
-            'unit_rate_low_end': config.get(
-                'electricity', 'unit_rate_low_end', fallback="00:00"
-            ),
-            'unit_rate_low_zone': timezone,
-            'agile_standing_charge': config.getfloat(
-                'electricity', 'agile_standing_charge', fallback=0.0
-            ),
-            'agile_unit_rates': [],
+            'unit_rate_electricity': config.getfloat(
+                'electricity', 'unit_rate_electricity', fallback=0.0
+            )
         },
         'gas': {
             'standing_charge': config.getfloat(
                 'gas', 'standing_charge', fallback=0.0
             ),
-            'unit_rate': config.getfloat('gas', 'unit_rate', fallback=0.0),
+            'unit_rate_gas': config.getfloat('gas', 'unit_rate_gas', fallback=0.0),
             # SMETS1 meters report kWh, SMET2 report m^3 and need converting to kWh first
             'conversion_factor': (float(g_vcf) * float(g_cv)) / 3.6 if int(g_meter_type) > 1 else None,
         }
@@ -206,14 +149,6 @@ def cmd(config_file, from_date, to_date):
         api_key, e_url, from_iso, to_iso
     )
     click.echo(f' {len(e_consumption)} readings.')
-    click.echo(
-        f'Retrieving Agile rates for {from_iso} until {to_iso}...',
-        nl=False
-    )
-    rate_data['electricity']['agile_unit_rates'] = retrieve_paginated_data(
-        api_key, agile_url, from_iso, to_iso
-    )
-    click.echo(f' {len(rate_data["electricity"]["agile_unit_rates"])} rates.')
     store_series(influx, 'electricity', e_consumption, rate_data['electricity'])
 
     click.echo(
