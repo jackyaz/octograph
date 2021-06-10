@@ -1,7 +1,5 @@
 #!/bin/sh
 
-pip3 install --no-cache-dir -r /octograph/python/requirements.txt
-
 if [ -f /config/octograph.ini ]; then
 	python /octograph/octopus_to_influxdb.py
 else
