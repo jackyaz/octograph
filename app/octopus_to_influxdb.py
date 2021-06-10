@@ -78,7 +78,7 @@ def store_series(connection, series, metrics, rate_data):
 @click.command()
 @click.option(
     '--config-file',
-    default="octograph.ini",
+    default="/config/octograph.ini",
     type=click.Path(exists=True, dir_okay=True, readable=True),
 )
 @click.option('--from-date', default='yesterday midnight', type=click.STRING)
