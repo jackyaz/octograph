@@ -4,7 +4,7 @@ LABEL maintainer="Jack Yaz <jackyaz@outlook.com"
 RUN apt-get update && apt-get -y install cron nano
 
 COPY requirements.txt /octograph/python/
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r /octograph/python/requirements.txt
 COPY octopus_to_influxdb.py /octograph/
 
 COPY entry.sh /
