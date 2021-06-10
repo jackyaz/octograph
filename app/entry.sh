@@ -9,10 +9,11 @@ fi
 
 if [ -f /config/crontab ]; then
 	cp /config/crontab /etc/cron.d/crontab
-	chmod 0644 /etc/cron.d/crontab
-	crontab /etc/cron.d/crontab
-	cron -f
 else
-	echo "/config/crontab is missing, exiting"
-	exit 1
+	echo "/config/crontab is missing, using default schedule"
+	cp /octograph/crontab /etc/cron.d/crontab
 fi
+
+chmod 0644 /etc/cron.d/crontab
+crontab /etc/cron.d/crontab
+cron -f

@@ -6,10 +6,9 @@ RUN apt-get update && apt-get -y install cron nano
 COPY requirements.txt /octograph/python/
 RUN pip3 install --no-cache-dir -r /octograph/python/requirements.txt
 COPY octopus_to_influxdb.py /octograph/
+COPY example-crontab /octograph/
 
 COPY entry.sh /
 RUN chmod 0755 /entry.sh
-
-RUN echo $PYTHONPATH
 
 ENTRYPOINT ["/entry.sh"]
