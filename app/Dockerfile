@@ -10,4 +10,6 @@ COPY octopus_to_influxdb.py /octograph/
 COPY entry.sh /
 RUN chmod 0755 /entry.sh
 
+RUN echo $PYTHONPATH
+
 ENTRYPOINT ["/entry.sh"]
