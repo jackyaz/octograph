@@ -76,8 +76,9 @@ def store_series(connection, series, metrics, rate_data):
 
 
 @click.command()
-def cmd(config_file):
+def cmd():
 
+    config_file = '/config/octograph.ini'
     config = ConfigParser()
     config.read(config_file)
 
@@ -158,4 +159,4 @@ def cmd(config_file):
 
 
 if __name__ == '__main__':
-    cmd('/config/octograph.ini')
+    cmd()
