@@ -30,6 +30,7 @@ Tested on Ubuntu with Docker and Python 3.7.
 
 Usage
 =====
+Docker image is available on [Docker Hub](https://hub.docker.com/r/jackyaz/octograph)
 
 Create a configuration file ``octograph.ini`` customised with your Octopus
 API key, meter details and energy rate information. This file should be in a
