@@ -2,12 +2,11 @@
 
 from configparser import ConfigParser
 from urllib import parse
-
 import click
-import maya
 import requests
 from influxdb import InfluxDBClient
-
+import maya
+from datetime import datetime, timedelta
 
 def retrieve_paginated_data(
         api_key, url, from_date, to_date, page=None
@@ -112,8 +111,6 @@ def cmd():
             f'{g_mpan}/meters/{g_serial}/consumption/'
 
     timezone = config.get('general', 'timezone', fallback=None)
-    from_date = config.get('general','from-date', fallback='yesterday midnight')
-    to_date = config.get('general','to-date', fallback='today midnight').strip()
 
     rate_data = {
         'electricity': {
@@ -134,8 +131,8 @@ def cmd():
         }
     }
 
-    from_iso = maya.when(from_date, timezone=timezone).iso8601()
-    to_iso = maya.when(to_date, timezone=timezone).iso8601()
+    from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone).isoformat()
+    to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone).isoformat()
 
     click.echo(
         f'Retrieving electricity data for {from_iso} until {to_iso}...',
