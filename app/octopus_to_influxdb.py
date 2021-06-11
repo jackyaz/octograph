@@ -82,11 +82,11 @@ def cmd():
     config.read(config_file)
 
     influx = InfluxDBClient(
-        host=config.get('influxdb', 'host', fallback="localhost"),
+        host=config.get('influxdb', 'host', fallback='localhost'),
         port=config.getint('influxdb', 'port', fallback=8086),
-        username=config.get('influxdb', 'user', fallback=""),
-        password=config.get('influxdb', 'password', fallback=""),
-        database=config.get('influxdb', 'database', fallback="energy"),
+        username=config.get('influxdb', 'user', fallback=''),
+        password=config.get('influxdb', 'password', fallback=''),
+        database=config.get('influxdb', 'database', fallback='energy'),
     )
 
     api_key = config.get('octopus', 'api_key')
@@ -110,7 +110,7 @@ def cmd():
     g_url = 'https://api.octopus.energy/v1/gas-meter-points/' \
             f'{g_mpan}/meters/{g_serial}/consumption/'
 
-    timezone = config.get('general', 'timezone', fallback=None)
+    timezone = config.get('general', 'timezone', fallback='Europe/London')
 
     rate_data = {
         'electricity': {
@@ -141,7 +141,7 @@ def cmd():
     e_consumption = retrieve_paginated_data(
         api_key, e_url, from_iso, to_iso
     )
-    click.echo(f' {len(e_consumption)} readings.')
+    click.echo(f'{len(e_consumption)} readings.')
     store_series(influx, 'electricity', e_consumption, rate_data['electricity'])
 
     click.echo(
@@ -151,7 +151,7 @@ def cmd():
     g_consumption = retrieve_paginated_data(
         api_key, g_url, from_iso, to_iso
     )
-    click.echo(f' {len(g_consumption)} readings.')
+    click.echo(f'{len(g_consumption)} readings.')
     store_series(influx, 'gas', g_consumption, rate_data['gas'])
 
 
