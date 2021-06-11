@@ -22,13 +22,11 @@ Tested on Ubuntu with Docker and Python 3.7.
 # Usage
 Docker image is available on [Docker Hub](https://hub.docker.com/r/jackyaz/octograph)
 
-Create a configuration file ``octograph.ini`` customised with your Octopus
+Create a configuration file ```octograph.ini``` customised with your Octopus
 API key, meter details and energy rate information. This file should be in a
-directory on the host that is mapped to /config in the Docker container.
+directory on the host that is mapped to ```/config``` in the Docker container.
 
-By default, energy data for the previous day will be collected. Optional from
-and to ranges may be specified to retrieve larger datasets. It is anticipated
-that the script will be run daily by a cron job.
+By default, energy data for the previous hour will be collected, running every hour on the hour.
 
-You should create an InfluxDB database ``energy``. The dashboard provided can
+You should create an InfluxDB database ```energy```. The Grafana dashboard provided can
 then be imported to review the data.
