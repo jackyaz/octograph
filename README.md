@@ -10,7 +10,7 @@ Python tool for downloading energy consumption data from the
 
 If you think you'd find this useful, but haven't switched to Octopus yet, then you can follow my referrer link [https://share.octopus.energy/ashen-stone-712](https://share.octopus.energy/ashen-stone-712)
 
-In the process, additional metrics will be generated and stored for unit rates and costs as configured by the user. Suitable for fixed rate electricity and gas tariffs.
+Suitable for fixed rate electricity and gas tariffs such as Octopus Fixed 24M Super Green tariff.
 
 Included is an example Grafana dashboard to visualise the captured data.
 
@@ -18,7 +18,7 @@ This fork assumes you have InfluxDB and Grafana deployed already.
 
 Tested on Ubuntu with Docker and Python 3.9.
 
-# Usage
+## Usage
 Docker image is available on [Docker Hub](https://hub.docker.com/r/jackyaz/octograph)
 
 Create a copy of the example configuration file included in the container ```/octograph/config/example-octograph.ini``` and customise it with your Octopus API key, meter details and energy rate information then save it as ```/octograph/config/octograph.ini```
