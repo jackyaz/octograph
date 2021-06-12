@@ -13,6 +13,7 @@ RUN chmod 0644 /etc/cron.d/crontab
 RUN crontab /etc/cron.d/crontab
 
 COPY octopus_to_influxdb.py /octograph/
+COPY example-octograph.ini /octograph/config/
 
 COPY entry.sh /
 RUN chmod 0755 /entry.sh

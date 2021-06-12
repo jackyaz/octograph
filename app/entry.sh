@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ -f /config/octograph.ini ]; then
+if [ -f /octograph/config/octograph.ini ]; then
 	python /octograph/octopus_to_influxdb.py
 else
 	echo "/config/octograph.ini is missing, exiting"
