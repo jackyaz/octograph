@@ -1,5 +1,5 @@
 FROM python:3.9-slim-buster
-LABEL maintainer="Jack Yaz <jackyaz@outlook.com"
+LABEL maintainer="Jack Yaz <jackyaz@outlook.com>"
 
 RUN apt-get update && apt-get -y install --no-install-recommends cron nano \
  && apt-get clean \
