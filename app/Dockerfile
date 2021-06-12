@@ -1,4 +1,4 @@
-FROM python:3.7
+FROM python:3.9-slim-buster
 LABEL maintainer="Jack Yaz <jackyaz@outlook.com"
 
 RUN apt-get update && apt-get -y install cron nano
