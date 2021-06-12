@@ -154,8 +154,8 @@ def cmd():
             )
             click.echo(f'{len(g_consumption)} readings.')
             store_series(influx, 'gas', g_consumption, rate_data['gas'])
-        except IOError:
-            raise click.ClickException('/octograph/config/octograph.ini is missing')
+    except IOError:
+        raise click.ClickException('/octograph/config/octograph.ini is missing')
 
 
 if __name__ == '__main__':
