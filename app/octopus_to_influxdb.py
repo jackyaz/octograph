@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 from configparser import ConfigParser
 from urllib import parse
 import click
@@ -8,9 +9,7 @@ from influxdb import InfluxDBClient
 import maya
 from datetime import datetime, timedelta
 
-def retrieve_paginated_data(
-        api_key, url, from_date, to_date, page=None
-):
+def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     args = {
         'period_from': from_date,
         'period_to': to_date,
@@ -29,9 +28,7 @@ def retrieve_paginated_data(
         )
     return results
 
-
 def store_series(connection, series, metrics, rate_data):
-
     def active_rate_field(measurement):
         if series == 'gas':
             return 'unit_rate_gas'
@@ -73,90 +70,88 @@ def store_series(connection, series, metrics, rate_data):
     ]
     connection.write_points(measurements)
 
-
 @click.command()
 def cmd():
-
     config = ConfigParser()
     try:
         with open('/octograph/config/octograph.ini') as f:
             config.read_file(f)
-
-            influx = InfluxDBClient(
-                host=config.get('influxdb', 'host', fallback='localhost'),
-                port=config.getint('influxdb', 'port', fallback=8086),
-                username=config.get('influxdb', 'user', fallback=''),
-                password=config.get('influxdb', 'password', fallback=''),
-                database=config.get('influxdb', 'database', fallback='energy'),
-            )
-
-            api_key = config.get('octopus', 'api_key')
-            if not api_key:
-                raise click.ClickException('No Octopus API key set')
-
-            e_mpan = config.get('electricity', 'mpan', fallback=None)
-            e_serial = config.get('electricity', 'serial_number', fallback=None)
-            if not e_mpan or not e_serial:
-                raise click.ClickException('No electricity meter identifiers')
-            e_url = 'https://api.octopus.energy/v1/electricity-meter-points/' \
-                    f'{e_mpan}/meters/{e_serial}/consumption/'
-
-            g_mpan = config.get('gas', 'mpan', fallback=None)
-            g_serial = config.get('gas', 'serial_number', fallback=None)
-            g_meter_type = config.get('gas', 'meter_type', fallback=1)
-            g_vcf = config.get('gas', 'volume_correction_factor', fallback=1.02264)
-            g_cv = config.get('gas', 'calorific_value', fallback=40)
-            if not g_mpan or not g_serial:
-                raise click.ClickException('No gas meter identifiers')
-            g_url = 'https://api.octopus.energy/v1/gas-meter-points/' \
-                    f'{g_mpan}/meters/{g_serial}/consumption/'
-
-            timezone = config.get('general', 'timezone', fallback='Europe/London')
-
-            rate_data = {
-                'electricity': {
-                    'standing_charge': config.getfloat(
-                        'electricity', 'standing_charge', fallback=0.0
-                    ),
-                    'unit_rate_electricity': config.getfloat(
-                        'electricity', 'unit_rate_electricity', fallback=0.0
-                    )
-                },
-                'gas': {
-                    'standing_charge': config.getfloat(
-                        'gas', 'standing_charge', fallback=0.0
-                    ),
-                    'unit_rate_gas': config.getfloat('gas', 'unit_rate_gas', fallback=0.0),
-                    # SMETS1 meters report kWh, SMET2 report m^3 and need converting to kWh first
-                    'conversion_factor': (float(g_vcf) * float(g_cv)) / 3.6 if int(g_meter_type) > 1 else None,
-                }
-            }
-
-            from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone).isoformat()
-            to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone).isoformat()
-
-            click.echo(
-                f'Retrieving electricity data for {from_iso} until {to_iso}...',
-                nl=False
-            )
-            e_consumption = retrieve_paginated_data(
-                api_key, e_url, from_iso, to_iso
-            )
-            click.echo(f'{len(e_consumption)} readings.')
-            store_series(influx, 'electricity', e_consumption, rate_data['electricity'])
-
-            click.echo(
-                f'Retrieving gas data for {from_iso} until {to_iso}...',
-                nl=False
-            )
-            g_consumption = retrieve_paginated_data(
-                api_key, g_url, from_iso, to_iso
-            )
-            click.echo(f'{len(g_consumption)} readings.')
-            store_series(influx, 'gas', g_consumption, rate_data['gas'])
     except IOError:
         raise click.ClickException('/octograph/config/octograph.ini is missing')
+        sys.exit()
 
+    influx = InfluxDBClient(
+        host=config.get('influxdb', 'host', fallback='localhost'),
+        port=config.getint('influxdb', 'port', fallback=8086),
+        username=config.get('influxdb', 'user', fallback=''),
+        password=config.get('influxdb', 'password', fallback=''),
+        database=config.get('influxdb', 'database', fallback='energy'),
+    )
+
+    api_key = config.get('octopus', 'api_key')
+    if not api_key:
+        raise click.ClickException('No Octopus API key set')
+
+    e_mpan = config.get('electricity', 'mpan', fallback=None)
+    e_serial = config.get('electricity', 'serial_number', fallback=None)
+    if not e_mpan or not e_serial:
+        raise click.ClickException('No electricity meter identifiers')
+    e_url = 'https://api.octopus.energy/v1/electricity-meter-points/' \
+            f'{e_mpan}/meters/{e_serial}/consumption/'
+
+    g_mpan = config.get('gas', 'mpan', fallback=None)
+    g_serial = config.get('gas', 'serial_number', fallback=None)
+    g_meter_type = config.get('gas', 'meter_type', fallback=1)
+    g_vcf = config.get('gas', 'volume_correction_factor', fallback=1.02264)
+    g_cv = config.get('gas', 'calorific_value', fallback=40)
+    if not g_mpan or not g_serial:
+        raise click.ClickException('No gas meter identifiers')
+    g_url = 'https://api.octopus.energy/v1/gas-meter-points/' \
+            f'{g_mpan}/meters/{g_serial}/consumption/'
+
+    timezone = config.get('general', 'timezone', fallback='Europe/London')
+
+    rate_data = {
+        'electricity': {
+            'standing_charge': config.getfloat(
+                'electricity', 'standing_charge', fallback=0.0
+            ),
+            'unit_rate_electricity': config.getfloat(
+                'electricity', 'unit_rate_electricity', fallback=0.0
+            )
+        },
+        'gas': {
+            'standing_charge': config.getfloat(
+                'gas', 'standing_charge', fallback=0.0
+            ),
+            'unit_rate_gas': config.getfloat('gas', 'unit_rate_gas', fallback=0.0),
+            # SMETS1 meters report kWh, SMET2 report m^3 and need converting to kWh first
+            'conversion_factor': (float(g_vcf) * float(g_cv)) / 3.6 if int(g_meter_type) > 1 else None,
+        }
+    }
+
+    from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone).isoformat()
+    to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone).isoformat()
+
+    click.echo(
+        f'Retrieving electricity data for {from_iso} until {to_iso}...',
+        nl=False
+    )
+    e_consumption = retrieve_paginated_data(
+        api_key, e_url, from_iso, to_iso
+    )
+    click.echo(f'{len(e_consumption)} readings.')
+    store_series(influx, 'electricity', e_consumption, rate_data['electricity'])
+
+    click.echo(
+        f'Retrieving gas data for {from_iso} until {to_iso}...',
+        nl=False
+    )
+    g_consumption = retrieve_paginated_data(
+        api_key, g_url, from_iso, to_iso
+    )
+    click.echo(f'{len(g_consumption)} readings.')
+    store_series(influx, 'gas', g_consumption, rate_data['gas'])
 
 if __name__ == '__main__':
     cmd()
