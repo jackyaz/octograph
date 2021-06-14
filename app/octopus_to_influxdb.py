@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 from configparser import ConfigParser
 from urllib import parse
 import click
@@ -78,7 +77,6 @@ def cmd():
             config.read_file(f)
     except IOError:
         raise click.ClickException('/octograph/config/octograph.ini is missing')
-        sys.exit()
 
     influx = InfluxDBClient(
         host=config.get('influxdb', 'host', fallback='localhost'),
