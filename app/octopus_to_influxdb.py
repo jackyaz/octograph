@@ -150,23 +150,21 @@ def cmd():
     to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone).isoformat()
 
     click.echo(
-        f'Retrieving electricity data for {from_iso} until {to_iso}...',
-        nl=False
+        f'Retrieving electricity data for {from_iso} until {to_iso}...'
     )
     e_consumption = retrieve_paginated_data(
         api_key, e_url, from_iso, to_iso
     )
-    click.echo(f'{len(e_consumption)} readings.')
+    click.echo(f'{len(e_consumption)} electricity readings retrieved.')
     store_series(influx, 'electricity', e_consumption, rate_data['electricity'])
 
     click.echo(
-        f'Retrieving gas data for {from_iso} until {to_iso}...',
-        nl=False
+        f'Retrieving gas data for {from_iso} until {to_iso}...'
     )
     g_consumption = retrieve_paginated_data(
         api_key, g_url, from_iso, to_iso
     )
-    click.echo(f'{len(g_consumption)} readings.')
+    click.echo(f'{len(g_consumption)} gas readings retrieved.')
     store_series(influx, 'gas', g_consumption, rate_data['gas'])
 
 if __name__ == '__main__':
