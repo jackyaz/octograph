@@ -25,10 +25,10 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     except requests.exceptions.HTTPError as e:
         global errorcount
         if errorcount <= maxerrorcount:
+            errorcount = errorcount + 1
             click.echo(f'An error occurred when trying to contact Octopus API. Error details: {e}')
             click.echo(f'This is error {errorcount} of {maxerrorcount}. Waiting 60s and trying again')
             time.sleep(60)
-            errorcount = errorcount + 1
             retrieve_paginated_data(
                 api_key, url, from_date, to_date, page
             )
