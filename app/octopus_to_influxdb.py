@@ -5,8 +5,12 @@ from urllib import parse
 import click
 import requests
 from influxdb import InfluxDBClient
+import time
 import maya
 from datetime import datetime, timedelta
+
+errorcount = 0
+maxerrorcount = 10
 
 def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     args = {
@@ -16,7 +20,21 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     if page:
         args['page'] = page
     response = requests.get(url, params=args, auth=(api_key, ''))
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as e:
+        global errorcount
+        if errorcount <= maxerrorcount:
+            click.echo(f'An error occurred when trying to contact Octopus API. Error details: {e}')
+            click.echo(f'This is error {errorcount} of {maxerrorcount}. Waiting 60s and trying again')
+            time.sleep(60)
+            errorcount = errorcount + 1
+            retrieve_paginated_data(
+                api_key, url, from_date, to_date, page
+            )
+        else:
+            raise click.ClickException('Persistent error when contacting Octopus API, please review error messages')
+
     data = response.json()
     results = data.get('results', [])
     if data['next']:
