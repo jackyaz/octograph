@@ -22,7 +22,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     response = requests.get(url, params=args, auth=(api_key, ''))
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError as e:
+    except requests.exceptions.RequestException as e:
         global errorcount
         if errorcount <= maxerrorcount:
             errorcount = errorcount + 1
