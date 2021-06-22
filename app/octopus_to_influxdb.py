@@ -36,7 +36,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
             )
         else:
             raise click.ClickException('Persistent error when contacting Octopus API, please review error messages')
-    
+
     errorcount = 0
 
     try:
