@@ -41,7 +41,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
 
     try:
         data = response.json()
-    except requests.exceptions.RequestException as e:
+    except ValueError as e:
         if errorcount <= maxerrorcount:
             errorcount = errorcount + 1
             click.echo(f'An error occurred when trying to extract JSON payload from Octopus API. Error details: {e}')
