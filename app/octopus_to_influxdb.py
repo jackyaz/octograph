@@ -13,17 +13,19 @@ errorcount = 0
 maxerrorcount = 10
 
 def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
+    global errorcount
     args = {
         'period_from': from_date,
         'period_to': to_date,
     }
     if page:
         args['page'] = page
+    
     response = requests.get(url, params=args, auth=(api_key, ''))
+
     try:
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
-        global errorcount
         if errorcount <= maxerrorcount:
             errorcount = errorcount + 1
             click.echo(f'An error occurred when trying to contact Octopus API. Error details: {e}')
@@ -34,8 +36,23 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
             )
         else:
             raise click.ClickException('Persistent error when contacting Octopus API, please review error messages')
+    
+    errorcount = 0
 
-    data = response.json()
+    try:
+        data = response.json()    
+    except requests.exceptions.RequestException as e:
+        if errorcount <= maxerrorcount:
+            errorcount = errorcount + 1
+            click.echo(f'An error occurred when trying to extract JSON payload from Octopus API. Error details: {e}')
+            click.echo(f'This is error {errorcount} of {maxerrorcount}. Waiting 60s and trying again')
+            time.sleep(60)
+            retrieve_paginated_data(
+                api_key, url, from_date, to_date, page
+            )
+        else:
+            raise click.ClickException('Persistent error when contacting Octopus API, please review error messages')
+
     results = data.get('results', [])
     if data['next']:
         url_query = parse.urlparse(data['next']).query
@@ -85,7 +102,10 @@ def store_series(connection, series, metrics, rate_data):
         }
         for measurement in metrics
     ]
-    connection.write_points(measurements)
+    try:
+        connection.write_points(measurements)
+    except Exception as e:
+        raise click.ClickException(f'Error when trying to save to InfluxDB, please review error messages: {e}')
 
 @click.command()
 def cmd():
