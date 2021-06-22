@@ -20,7 +20,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     }
     if page:
         args['page'] = page
-    
+
     response = requests.get(url, params=args, auth=(api_key, ''))
 
     try:
@@ -40,7 +40,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     errorcount = 0
 
     try:
-        data = response.json()    
+        data = response.json()
     except requests.exceptions.RequestException as e:
         if errorcount <= maxerrorcount:
             errorcount = errorcount + 1
