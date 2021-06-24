@@ -40,7 +40,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
 
     errorcount = 0
 
-    data = None
+    data = {}
 
     try:
         data = response.json()
