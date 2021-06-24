@@ -23,7 +23,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
 
     response = None
 
-    try: 
+    try:
         response = requests.get(url, params=args, auth=(api_key, ''))
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
