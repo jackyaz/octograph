@@ -57,12 +57,14 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
             raise click.ClickException('Persistent error when contacting Octopus API, please review error messages')
 
     results = data.get('results', [])
-    if data['next']:
-        url_query = parse.urlparse(data['next']).query
+
+    if data.get('next'):
+        url_query = parse.urlparse(data.get('next')).query
         next_page = parse.parse_qs(url_query)['page'][0]
         results += retrieve_paginated_data(
             api_key, url, from_date, to_date, next_page
         )
+
     return results
 
 def store_series(connection, series, metrics, rate_data):
