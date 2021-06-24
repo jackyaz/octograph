@@ -21,9 +21,10 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     if page:
         args['page'] = page
 
-    response = requests.get(url, params=args, auth=(api_key, ''))
+    response = None
 
-    try:
+    try: 
+        response = requests.get(url, params=args, auth=(api_key, ''))
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
         if errorcount <= maxerrorcount:
@@ -38,6 +39,8 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
             raise click.ClickException('Persistent error when contacting Octopus API, please review error messages')
 
     errorcount = 0
+
+    data = None
 
     try:
         data = response.json()
