@@ -85,21 +85,14 @@ def store_series(connection, series, metrics, rate_data):
             'consumption': consumption,
             'cost': cost,
             'total_cost': cost + standing_charge,
+            'standing_charge': rate_data['standing_charge'],
+            'unit_charge': rate_cost
         }
         return fields
-
-    def tags_for_measurement(measurement):
-        period = maya.parse(measurement['interval_end'])
-        time = period.datetime().strftime('%H:%M')
-        return {
-            'active_rate': active_rate_field(measurement),
-            'time_of_day': time,
-        }
 
     measurements = [
         {
             'measurement': series,
-            'tags': tags_for_measurement(measurement),
             'time': measurement['interval_end'],
             'fields': fields_for_measurement(measurement),
         }
