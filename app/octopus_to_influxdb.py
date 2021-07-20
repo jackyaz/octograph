@@ -8,6 +8,8 @@ from influxdb import InfluxDBClient
 import time
 import maya
 from datetime import datetime, timedelta
+import sys
+import fileinput
 
 errorcount = 0
 maxerrorcount = 10
@@ -165,12 +167,17 @@ def cmd():
     from_iso = None
     to_iso = None
 
-    try:
-        with open('/octograph/.firstrun') as f:
-            from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone, naive=True).isoformat()
-            to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
-    except IOError:
-        click.echo(f'Running first run import of all existing readings...')
+    firstruncompleted = config.get('firstrun', 'completed', fallback='none')
+
+    if(firstruncompleted == 'none'):
+        with open('/octograph/config/octograph.ini', 'a') as myfile:
+            myfile.write('\n\n[firstrun]\ncompleted = false\n')
+            firstruncompleted = 'true'
+    elif(firstruncompleted == 'true'):
+        from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone, naive=True).isoformat()
+        to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
+    elif(firstruncompleted == 'false'):
+        click.echo('Running first run import of all existing readings...')
         from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(weeks=208)).datetime(to_timezone=timezone, naive=True).isoformat()
         to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
 
@@ -190,12 +197,11 @@ def cmd():
     click.echo(f'{len(g_consumption)} gas readings retrieved.')
     store_series(influx, 'gas', g_consumption, rate_data['gas'])
 
-    try:
-        f = open('/octograph/.firstrun')
-        f.close()
-    except IOError:
-        f = open("/octograph/.firstrun", "w")
-        f.close()
-
+    if(firstruncompleted == 'false'):
+        for line in fileinput.input('/octograph/config/octograph.ini', inplace=True):
+            if line.strip().startswith('completed = '):
+                line = 'completed = true\n'
+            sys.stdout.write(line)
+    
 if __name__ == '__main__':
     cmd()

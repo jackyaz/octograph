@@ -31,7 +31,7 @@ docker run -d \
 ```
 
 ### Parameters
-The Docker images supports some parameters. These parameters are separated by a colon and indicate `<external>:<internal>` respectively. For example, `-v /apps/octograph:/octograph/config` would map ```/apps/octograph``` on the Docker host to ```/octograph/config``` inside the container, allowing you to edit the configuration file from outside the container.
+The Docker images supports some parameters. These parameters are separated by a colon and indicate `<external>:<internal>` respectively. For example, `-v /apps/octograph:/octograph/config` would map ```/apps/octograph``` on the Docker host to ```/octograph/config``` inside the container, allowing you to edit the configuration file from outside the container. The container requires write access to octograph.ini .
 
 | Parameter | Function |
 | :----: | --- |
