@@ -162,12 +162,19 @@ def cmd():
         }
     }
 
-    from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone, naive=True).isoformat()
-    to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
+    from_iso = None
+    to_iso = None
 
-    click.echo(
-        f'Retrieving electricity data for {from_iso} until {to_iso}...'
-    )
+    try:
+        with open('/octograph/.firstrun') as f:
+            from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone, naive=True).isoformat()
+            to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
+    except IOError:
+        click.echo(f'Running first run import of all existing readings...')
+        from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(weeks=208)).datetime(to_timezone=timezone, naive=True).isoformat()
+        to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
+
+    click.echo(f'Retrieving electricity data for {from_iso} until {to_iso}...')
     e_consumption = retrieve_paginated_data(
         api_key, e_url, from_iso, to_iso
     )
@@ -182,6 +189,13 @@ def cmd():
     )
     click.echo(f'{len(g_consumption)} gas readings retrieved.')
     store_series(influx, 'gas', g_consumption, rate_data['gas'])
+
+    try:
+        f = open('/octograph/.firstrun')
+        f.close()
+    except IOError:
+        f = open("/octograph/.firstrun", "w")
+        f.close()
 
 if __name__ == '__main__':
     cmd()
