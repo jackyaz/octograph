@@ -171,9 +171,10 @@ def cmd():
 
     if(firstruncompleted == 'none'):
         with open('/octograph/config/octograph.ini', 'a') as myfile:
-            myfile.write('\n\n[firstrun]\ncompleted = false\n')
-            firstruncompleted = 'true'
-    elif(firstruncompleted == 'true'):
+            myfile.write('\n[firstrun]\ncompleted = false\n')
+            firstruncompleted = 'false'
+
+    if(firstruncompleted == 'true'):
         from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone, naive=True).isoformat()
         to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
     elif(firstruncompleted == 'false'):
