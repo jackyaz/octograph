@@ -202,6 +202,6 @@ def cmd():
             if line.strip().startswith('completed = '):
                 line = 'completed = true\n'
             sys.stdout.write(line)
-    
+
 if __name__ == '__main__':
     cmd()
