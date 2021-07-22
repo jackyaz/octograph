@@ -106,7 +106,8 @@ def store_series(connection, series, metrics, rate_data):
         raise click.ClickException(f'Error when trying to save to InfluxDB, please review error messages: {e}')
 
 @click.command()
-def cmd():
+@click.option('--hoursago', default=1, show_default=True)
+def cmd(hoursago):
     config = ConfigParser()
     try:
         with open('/octograph/config/octograph.ini') as f:
@@ -175,7 +176,7 @@ def cmd():
             firstruncompleted = 'false'
 
     if(firstruncompleted == 'true'):
-        from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)).datetime(to_timezone=timezone, naive=True).isoformat()
+        from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=hoursago)).datetime(to_timezone=timezone, naive=True).isoformat()
         to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
     elif(firstruncompleted == 'false'):
         click.echo('Running first run import of all existing readings...')
