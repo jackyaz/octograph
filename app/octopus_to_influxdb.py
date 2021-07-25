@@ -106,7 +106,7 @@ def store_series(connection, series, metrics, rate_data):
         raise click.ClickException(f'Error when trying to save to InfluxDB, please review error messages: {e}')
 
 @click.command()
-@click.option('--hoursago', default=1, show_default=True)
+@click.option('--hoursago', default=24, show_default=True)
 def cmd(hoursago):
     config = ConfigParser()
     try:

@@ -16,4 +16,4 @@
 # For more information see the manual pages of crontab(5) and cron(8)
 #
 # m  h  dom mon dow  command
-  0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1
+  5  0   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1
