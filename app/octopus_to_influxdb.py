@@ -76,6 +76,8 @@ def store_series(connection, series, metrics, rate_data):
 
     def fields_for_measurement(measurement):
         consumption = measurement['consumption']
+        if consumption == 16777.215:
+            consumption = 0
         conversion_factor = rate_data.get('conversion_factor', None)
         if conversion_factor:
             consumption *= conversion_factor
