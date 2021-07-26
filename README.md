@@ -1,16 +1,16 @@
 # Octograph
-## Original author and credits
-Forked from: [https://github.com/stevenewey/octograph](https://github.com/stevenewey/octograph)
-
-Steven's referral link for Octopus: [https://share.octopus.energy/vivid-emu-468](https://share.octopus.energy/vivid-emu-468)
 
 ## About
+For Octopus Agile/Go tariffs, use the original here: [https://github.com/stevenewey/octograph](https://github.com/stevenewey/octograph)
+
+For fixed rate electricity and gas tariffs, such as Octopus Fixed 24M Super Green tariff, keep reading.
+
 Python tool for downloading energy consumption data from the
 [Octopus Energy API](https://developer.octopus.energy/docs/api/) and loading it into [InfluxDB](https://www.influxdata.com/time-series-platform/influxdb/) and visualising in [Grafana](https://grafana.com).
 
 If you think you'd find this useful, but haven't switched to Octopus yet, then you can follow my referrer link [https://share.octopus.energy/ashen-stone-712](https://share.octopus.energy/ashen-stone-712)
 
-Suitable for fixed rate electricity and gas tariffs such as Octopus Fixed 24M Super Green tariff. Energy data for the previous hour will be collected, running every hour on the hour.
+Energy data for the previous dasy will be collected, running at 5 past midnight. If no readings are detected, then Octograph will retry every hour on the hour.
 
 Included is an example Grafana dashboard to visualise the captured data.
 
