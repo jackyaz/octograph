@@ -173,8 +173,8 @@ def cmd(hoursago):
     firstruncompleted = config.get('firstrun', 'completed', fallback='none')
 
     if(firstruncompleted == 'none'):
-        with open('/octograph/config/octograph.ini', 'a') as myfile:
-            myfile.write('\n[firstrun]\ncompleted = false\n')
+        with open('/octograph/config/octograph.ini', 'a') as f:
+            f.write('\n[firstrun]\ncompleted = false\n')
             firstruncompleted = 'false'
 
     if(firstruncompleted == 'true'):
@@ -206,6 +206,18 @@ def cmd(hoursago):
             if line.strip().startswith('completed = '):
                 line = 'completed = true\n'
             sys.stdout.write(line)
+
+    with open('/etc/cron.d/crontab', 'r') as f:
+        lines = f.readlines()
+    with open('/etc/cron.d/crontab', 'w') as f:
+        for line in lines:
+            if line.strip('\n') != '0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1':
+                f.write(line)
+
+    if len(e_consumption) == 0 and len(g_consumption) == 0: 
+        click.echo('0 readings detected, retrying hourly')
+        with open('/etc/cron.d/crontab', 'a') as f:
+            f.write('0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1') 
 
 if __name__ == '__main__':
     cmd()
