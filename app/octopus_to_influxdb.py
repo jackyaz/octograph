@@ -214,7 +214,7 @@ def cmd(hoursago):
         for line in lines:
             if line.strip('\n') != ' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1':
                 f.write(line)
-        subprocess.run(['crontab', '/etc/cron.d/crontab'])
+    subprocess.run(['crontab', '/etc/cron.d/crontab'])
 
     if len(e_consumption) == 0 and len(g_consumption) == 0:
         click.echo('0 readings detected, retrying hourly')
