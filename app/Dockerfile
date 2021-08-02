@@ -8,7 +8,7 @@ RUN apt-get update && apt-get -y install --no-install-recommends cron=3.0pl1-134
 RUN pip3 install --no-cache-dir 'requests >= 2.20.0'
 RUN pip3 install --no-cache-dir 'influxdb == 5.2.0'
 RUN pip3 install --no-cache-dir 'Click == 7.0'
-RUN pip3 install --no-cache-dir 'maya == 0.5.0'
+RUN pip3 install --no-cache-dir 'pytz == 2019.3'
 
 COPY crontab /etc/cron.d/crontab
 RUN chmod 0644 /etc/cron.d/crontab

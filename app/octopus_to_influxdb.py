@@ -5,9 +5,9 @@ from urllib import parse
 import click
 import requests
 from influxdb import InfluxDBClient
-import time
-import maya
 from datetime import datetime, timedelta
+import pytz
+import time
 import sys
 import fileinput
 import subprocess
@@ -179,12 +179,16 @@ def cmd(hoursago):
             firstruncompleted = 'false'
 
     if(firstruncompleted == 'true'):
-        from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(hours=hoursago)).datetime(to_timezone=timezone, naive=True).isoformat()
-        to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
+        if hoursago == 24:
+            from_iso = ((datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0, hour=0))- timedelta(hours=hoursago)).isoformat()
+            to_iso = (datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0, hour=0)).isoformat()
+        else:
+            from_iso = ((datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0))- timedelta(hours=hoursago)).isoformat()
+            to_iso = (datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0)).isoformat()
     elif(firstruncompleted == 'false'):
         click.echo('Running first run import of all existing readings...')
-        from_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0) - timedelta(weeks=208)).datetime(to_timezone=timezone, naive=True).isoformat()
-        to_iso = maya.MayaDT.from_datetime(datetime.utcnow().replace(microsecond=0, second=0, minute=0)).datetime(to_timezone=timezone, naive=True).isoformat()
+        from_iso = ((datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0, hour=0))- timedelta(weeks=208)).isoformat()
+        to_iso = (datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0)).isoformat()
 
     click.echo(f'Retrieving electricity data for {from_iso} until {to_iso}...')
     e_consumption = retrieve_paginated_data(
