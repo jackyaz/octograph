@@ -226,5 +226,11 @@ def cmd(hoursago):
             f.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
         subprocess.run(['crontab', '/etc/cron.d/crontab'])
 
+    if len(e_consumption) < 48 and len(g_consumption) < 48:
+        click.echo('Fewer readings than expected detected, retrying hourly')
+        with open('/etc/cron.d/crontab', 'a') as f:
+            f.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
+        subprocess.run(['crontab', '/etc/cron.d/crontab'])
+
 if __name__ == '__main__':
     cmd()
