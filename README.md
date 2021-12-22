@@ -42,4 +42,4 @@ Create a copy of the example configuration file included in the image ```/octogr
 
 ```nano``` is included in the container for editing the configuration file.
 
-You should create an InfluxDB database ```energy```. The Grafana dashboard provided can be imported to visualise the data.
+You should create an InfluxDB database ```energy```. The Grafana dashboard can be imported to visualise the data either via the provided json file or using the dashboard id ```15431```.
