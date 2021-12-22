@@ -10,7 +10,7 @@ Python tool for downloading energy consumption data from the
 
 If you think you'd find this useful, but haven't switched to Octopus yet, then you can follow my referrer link [https://share.octopus.energy/ashen-stone-712](https://share.octopus.energy/ashen-stone-712)
 
-Energy data for the previous dasy will be collected, running at 5 past midnight. If no readings are detected, then Octograph will retry every hour on the hour.
+Energy data for the previous day will be collected, running at 5 past midnight. If no readings are detected, then Octograph will retry every hour on the hour.
 
 Included is an example Grafana dashboard to visualise the captured data.
 
