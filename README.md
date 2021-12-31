@@ -27,7 +27,7 @@ docker run -d \
   --name=octograph \
   -v /path/to/data:/octograph/config \
   --restart unless-stopped \
-  jackyaz/octograph
+  jackyaz.io/jackyaz/octograph
 ```
 
 ### Parameters
