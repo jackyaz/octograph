@@ -1,4 +1,4 @@
-FROM python:3.9-slim-buster
+FROM python:3.9-slim-bullseye
 LABEL maintainer="Jack Yaz <jackyaz@outlook.com>"
 
 RUN apt-get update && apt-get -y install --no-install-recommends cron=3.0pl1-134+deb10u1 nano=3.2-3 \
