@@ -2,21 +2,21 @@
 
 from configparser import ConfigParser
 from urllib import parse
-import click
-import requests
-from influxdb import InfluxDBClient
 from datetime import datetime, timedelta
-import pytz
 import time
 import sys
 import fileinput
 import subprocess
+import pytz
+import requests
+from influxdb import InfluxDBClient
+import click
 
-errorcount = 0
-maxerrorcount = 10
+ERROR_COUNT = 0
+MAX_ERROR_COUNT = 10
 
 def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
-    global errorcount
+    global ERROR_COUNT
     args = {
         'period_from': from_date,
         'period_to': to_date,
@@ -27,13 +27,13 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     response = None
 
     try:
-        response = requests.get(url, params=args, auth=(api_key, ''))
+        response = requests.get(url, params=args, auth=(api_key, ''), timeout=90)
         response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        if errorcount <= maxerrorcount:
-            errorcount = errorcount + 1
-            click.echo(f'An error occurred when trying to contact Octopus API. Error details: {e}')
-            click.echo(f'This is error {errorcount} of {maxerrorcount}. Waiting 60s and trying again')
+    except requests.exceptions.RequestException as error_message:
+        if ERROR_COUNT <= MAX_ERROR_COUNT:
+            ERROR_COUNT = ERROR_COUNT + 1
+            click.echo(f'An error occurred when trying to contact Octopus API. Error details: {error_message}')
+            click.echo(f'This is error {ERROR_COUNT} of {MAX_ERROR_COUNT}. Waiting 60s and trying again')
             time.sleep(60)
             retrieve_paginated_data(
                 api_key, url, from_date, to_date, page
@@ -45,11 +45,11 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
 
     try:
         data = response.json()
-    except ValueError as e:
-        if errorcount <= maxerrorcount:
-            errorcount = errorcount + 1
-            click.echo(f'An error occurred when trying to extract JSON payload from Octopus API. Error details: {e}')
-            click.echo(f'This is error {errorcount} of {maxerrorcount}. Waiting 60s and trying again')
+    except ValueError as error_message:
+        if ERROR_COUNT <= MAX_ERROR_COUNT:
+            ERROR_COUNT = ERROR_COUNT + 1
+            click.echo(f'An error occurred when trying to extract JSON payload from Octopus API. Error details: {error_message}')
+            click.echo(f'This is error {ERROR_COUNT} of {MAX_ERROR_COUNT}. Waiting 60s and trying again')
             time.sleep(60)
             retrieve_paginated_data(
                 api_key, url, from_date, to_date, page
@@ -69,7 +69,7 @@ def retrieve_paginated_data(api_key, url, from_date, to_date, page=None):
     return results
 
 def store_series(connection, series, metrics, rate_data):
-    def active_rate_field(measurement):
+    def active_rate_field():
         if series == 'gas':
             return 'unit_rate_gas'
         elif series == 'electricity':
@@ -82,7 +82,7 @@ def store_series(connection, series, metrics, rate_data):
         conversion_factor = rate_data.get('conversion_factor', None)
         if conversion_factor:
             consumption *= conversion_factor
-        rate = active_rate_field(measurement)
+        rate = active_rate_field()
         rate_cost = rate_data[rate]
         cost = consumption * rate_cost
         standing_charge = rate_data['standing_charge'] / 48  # 30 minute reads
@@ -105,18 +105,18 @@ def store_series(connection, series, metrics, rate_data):
     ]
     try:
         connection.write_points(measurements)
-    except Exception as e:
-        raise click.ClickException(f'Error when trying to save to InfluxDB, please review error messages: {e}')
+    except Exception as error_message:
+        raise click.ClickException(f'Error when trying to save to InfluxDB, please review error messages: {error_message}')
 
 @click.command()
 @click.option('--hoursago', default=24, show_default=True)
 def cmd(hoursago):
     config = ConfigParser()
     try:
-        with open('/octograph/config/octograph.ini') as f:
-            config.read_file(f)
-    except IOError:
-        raise click.ClickException('/octograph/config/octograph.ini is missing')
+        with open('/octograph/config/octograph.ini', encoding="utf-8") as config_file:
+            config.read_file(config_file)
+    except IOError as io_error:
+        raise click.ClickException('/octograph/config/octograph.ini is missing') from io_error
 
     influx = InfluxDBClient(
         host=config.get('influxdb', 'host', fallback='localhost'),
@@ -173,19 +173,19 @@ def cmd(hoursago):
 
     firstruncompleted = config.get('firstrun', 'completed', fallback='none')
 
-    if(firstruncompleted == 'none'):
-        with open('/octograph/config/octograph.ini', 'a') as f:
-            f.write('\n[firstrun]\ncompleted = false\n')
+    if firstruncompleted == 'none':
+        with open('/octograph/config/octograph.ini', 'a', encoding="utf-8") as config_file:
+            config_file.write('\n[firstrun]\ncompleted = false\n')
             firstruncompleted = 'false'
 
-    if(firstruncompleted == 'true'):
+    if firstruncompleted == 'true':
         if hoursago == 24:
             from_iso = ((datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0, hour=0))- timedelta(hours=hoursago)).isoformat()
             to_iso = (datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0, hour=0)).isoformat()
         else:
             from_iso = ((datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0))- timedelta(hours=hoursago)).isoformat()
             to_iso = (datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0)).isoformat()
-    elif(firstruncompleted == 'false'):
+    elif firstruncompleted == 'false':
         click.echo('Running first run import of all existing readings...')
         from_iso = ((datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0, hour=0))- timedelta(weeks=208)).isoformat()
         to_iso = (datetime.now(pytz.timezone(timezone)).replace(microsecond=0, second=0, minute=0)).isoformat()
@@ -206,31 +206,31 @@ def cmd(hoursago):
     click.echo(f'{len(g_consumption)} gas readings retrieved.')
     store_series(influx, 'gas', g_consumption, rate_data['gas'])
 
-    if(firstruncompleted == 'false'):
+    if firstruncompleted == 'false':
         for line in fileinput.input('/octograph/config/octograph.ini', inplace=True):
             if line.strip().startswith('completed = '):
                 line = 'completed = true\n'
             sys.stdout.write(line)
 
-    with open('/etc/cron.d/crontab', 'r') as f:
-        lines = f.readlines()
-    with open('/etc/cron.d/crontab', 'w') as f:
+    with open('/etc/cron.d/crontab', 'r', encoding="utf-8") as crontab_file:
+        lines = crontab_file.readlines()
+    with open('/etc/cron.d/crontab', 'w', encoding="utf-8") as crontab_file:
         for line in lines:
             if line.strip('\n') != ' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1':
-                f.write(line)
-    subprocess.run(['crontab', '/etc/cron.d/crontab'])
+                crontab_file.write(line)
+    subprocess.run(['crontab', '/etc/cron.d/crontab'], check=False)
 
     if len(e_consumption) == 0 and len(g_consumption) == 0:
         click.echo('0 readings detected, retrying hourly')
-        with open('/etc/cron.d/crontab', 'a') as f:
-            f.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
-        subprocess.run(['crontab', '/etc/cron.d/crontab'])
+        with open('/etc/cron.d/crontab', 'a', encoding="utf-8") as crontab_file:
+            crontab_file.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
+        subprocess.run(['crontab', '/etc/cron.d/crontab'], check=False)
 
     if len(e_consumption) < 48 or len(g_consumption) < 48:
         click.echo('Fewer readings than expected detected, retrying hourly')
-        with open('/etc/cron.d/crontab', 'a') as f:
-            f.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
-        subprocess.run(['crontab', '/etc/cron.d/crontab'])
+        with open('/etc/cron.d/crontab', 'a', encoding="utf-8") as crontab_file:
+            crontab_file.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
+        subprocess.run(['crontab', '/etc/cron.d/crontab'], check=False)
 
 if __name__ == '__main__':
-    cmd()
+    cmd(None)
