@@ -214,17 +214,18 @@ def cmd(hoursago):
                 line = 'completed = true\n'
             sys.stdout.write(line)
 
-    if os.path.isfile('/etc/cron.d/crontab.bak'):
-        shutil.copyfile('/etc/cron.d/crontab.bak', '/etc/cron.d/crontab')
-        os.remove('/etc/cron.d/crontab.bak')
-        subprocess.run(['crontab', '/etc/cron.d/crontab'], check=False)
+    if os.path.isfile('/etc/crontab.bak'):
+        click.echo('Restoring cron schedule')
+        shutil.copyfile('/etc/crontab.bak', '/etc/crontab')
+        os.remove('/etc/crontab.bak')
+        shutil.copyfile('/etc/crontab', '/var/spool/cron/crontabs/root')
 
     if (len(e_consumption) == 0 and len(g_consumption) == 0) or len(e_consumption) < 48 or len(g_consumption) < 48:
         click.echo('Fewer readings than expected detected, retrying hourly')
-        shutil.copyfile('/etc/cron.d/crontab', '/etc/cron.d/crontab.bak')
-        with open('/etc/cron.d/crontab', 'w', encoding="utf-8") as crontab_file:
+        shutil.copyfile('/etc/crontab', '/etc/crontab.bak')
+        with open('/etc/crontab', 'w', encoding="utf-8") as crontab_file:
             crontab_file.write(' 0  *   *   *   *   /usr/local/bin/python3 /octograph/octopus_to_influxdb.py > /proc/1/fd/1 2>&1\n')
-        subprocess.run(['crontab', '/etc/cron.d/crontab'], check=False)
+        shutil.copyfile('/etc/crontab', '/var/spool/cron/crontabs/root')
         sys.exit()
 
 if __name__ == '__main__':
