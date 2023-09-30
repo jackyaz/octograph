@@ -126,6 +126,7 @@ def cmd(hoursago):
         username=config.get('influxdb', 'user', fallback=''),
         password=config.get('influxdb', 'password', fallback=''),
         database=config.get('influxdb', 'database', fallback='energy'),
+        timeout=30,
     )
 
     api_key = config.get('octopus', 'api_key')
