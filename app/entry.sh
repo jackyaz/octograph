@@ -9,4 +9,4 @@ else
 	echo "Please copy /octograph/config/example-octograph.ini to /octograph/config/octograph.ini and customise with your information"
 fi
 
-cron -f
+exec cron -f -l 2
