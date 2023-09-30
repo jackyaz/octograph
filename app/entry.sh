@@ -1,5 +1,7 @@
 #!/bin/sh
 
+env >> /etc/environment
+
 if [ -f /octograph/config/octograph.ini ]; then
 	python /octograph/octopus_to_influxdb.py
 else
