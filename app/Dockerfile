@@ -11,9 +11,9 @@ RUN pip3 install --no-cache-dir 'influxdb == 5.2.0'
 RUN pip3 install --no-cache-dir 'Click >= 7.0'
 RUN pip3 install --no-cache-dir 'pytz >= 2023.3'
 
-COPY crontab /etc/cron.d/crontab
-RUN chmod 0644 /etc/cron.d/crontab
-RUN crontab /etc/cron.d/crontab
+COPY crontab /etc/crontab
+RUN chmod 0644 /etc/crontab
+RUN crontab /etc/crontab
 
 COPY octopus_to_influxdb.py /octograph/
 COPY example-octograph.ini /octograph/config/
