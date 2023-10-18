@@ -1,4 +1,4 @@
-FROM python:3.10.13-bookworm
+FROM python:3.10.13-slim-bookworm
 LABEL maintainer="Jack Yaz <jackyaz@outlook.com>"
 
 RUN apt-get update && apt-get -y install --no-install-recommends cron nano procps \
